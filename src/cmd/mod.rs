@@ -6,6 +6,7 @@ use enum_dispatch::enum_dispatch;
 use lazy_static::lazy_static;
 use thiserror::Error;
 
+// you could also use once_cell instead of lazy_static
 lazy_static! {
     static ref RESP_OK: RespFrame = SimpleString::new("OK").into();
 }
@@ -68,6 +69,7 @@ pub struct HSet {
 #[derive(Debug)]
 pub struct HGetAll {
     key: String,
+    sort: bool,
 }
 
 #[derive(Debug)]
@@ -75,8 +77,8 @@ pub struct Unrecognized;
 
 impl TryFrom<RespFrame> for Command {
     type Error = CommandError;
-    fn try_from(value: RespFrame) -> Result<Self, Self::Error> {
-        match value {
+    fn try_from(v: RespFrame) -> Result<Self, Self::Error> {
+        match v {
             RespFrame::Array(array) => array.try_into(),
             _ => Err(CommandError::InvalidCommand(
                 "Command must be an Array".to_string(),

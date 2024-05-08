@@ -98,15 +98,18 @@ impl TryFrom<RespArray> for Command {
     type Error = CommandError;
     fn try_from(v: RespArray) -> Result<Self, Self::Error> {
         match v.first() {
-            Some(RespFrame::BulkString(ref cmd)) => match cmd.as_ref() {
-                b"get" => Ok(Get::try_from(v)?.into()),
-                b"set" => Ok(Set::try_from(v)?.into()),
-                b"hget" => Ok(HGet::try_from(v)?.into()),
-                b"hset" => Ok(HSet::try_from(v)?.into()),
-                b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
-                b"echo" => Ok(Echo::try_from(v)?.into()),
-                _ => Ok(Unrecognized.into()),
-            },
+            Some(RespFrame::BulkString(ref cmd)) => {
+                let ascii_lowercase: &[u8] = &cmd.to_ascii_lowercase();
+                match ascii_lowercase {
+                    b"get" => Ok(Get::try_from(v)?.into()),
+                    b"set" => Ok(Set::try_from(v)?.into()),
+                    b"hget" => Ok(HGet::try_from(v)?.into()),
+                    b"hset" => Ok(HSet::try_from(v)?.into()),
+                    b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
+                    b"echo" => Ok(Echo::try_from(v)?.into()),
+                    _ => Ok(Unrecognized.into()),
+                }
+            }
             _ => Err(CommandError::InvalidCommand(
                 "Command must have a BulkString as the first argument".to_string(),
             )),

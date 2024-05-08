@@ -46,9 +46,15 @@ pub async fn stream_handler(stream: TcpStream, backend: Backend) -> Result<()> {
 
 async fn request_handler(request: RedisRequest) -> Result<RedisResponse> {
     let (frame, backend) = (request.frame, request.backend);
-    let cmd = Command::try_from(frame)?;
-    info!("Executing command: {:?}", cmd);
-    let frame = cmd.execute(&backend);
+    let cmd_result = Command::try_from(frame);
+    let frame = match cmd_result {
+        Ok(cmd) => {
+            info!("Executing command: {:?}", cmd);
+            cmd.execute(&backend)
+        }
+        Err(e) => RespFrame::Error(crate::SimpleError(e.to_string())),
+    };
+
     Ok(RedisResponse { frame })
 }
 

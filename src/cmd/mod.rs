@@ -18,6 +18,8 @@ pub enum CommandError {
     InvalidCommand(String),
     #[error("Invalid argument: {0}")]
     InvalidArgument(String),
+    #[error("Unknown command: {0}")]
+    UnknownCommand(String),
 
     #[error("{0}")]
     RespError(#[from] RespError),
@@ -39,9 +41,6 @@ pub enum Command {
     HSet(HSet),
     HGetAll(HGetAll),
     Echo(Echo),
-
-    // unrecognized command
-    Unrecognized(Unrecognized),
 }
 
 #[derive(Debug)]
@@ -79,9 +78,6 @@ pub struct Echo {
     message: String,
 }
 
-#[derive(Debug)]
-pub struct Unrecognized;
-
 impl TryFrom<RespFrame> for Command {
     type Error = CommandError;
     fn try_from(v: RespFrame) -> Result<Self, Self::Error> {
@@ -107,19 +103,15 @@ impl TryFrom<RespArray> for Command {
                     b"hset" => Ok(HSet::try_from(v)?.into()),
                     b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
                     b"echo" => Ok(Echo::try_from(v)?.into()),
-                    _ => Ok(Unrecognized.into()),
+                    _ => Err(CommandError::UnknownCommand(
+                        String::from_utf8_lossy(ascii_lowercase).to_string(),
+                    )),
                 }
             }
             _ => Err(CommandError::InvalidCommand(
                 "Command must have a BulkString as the first argument".to_string(),
             )),
         }
-    }
-}
-
-impl CommandExecutor for Unrecognized {
-    fn execute(self, _: &Backend) -> RespFrame {
-        RESP_OK.clone()
     }
 }
 

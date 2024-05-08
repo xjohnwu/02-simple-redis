@@ -5,7 +5,11 @@ use tracing::{info, warn};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    tracing::subscriber::set_global_default(
+        tracing_subscriber::FmtSubscriber::builder()
+            .with_max_level(tracing::Level::DEBUG)
+            .finish(),
+    )?;
 
     let addr = "0.0.0.0:6379";
     info!("Simple-Redis-Server is listening on {}", addr);

@@ -38,6 +38,7 @@ pub enum Command {
     Get(Get),
     Set(Set),
     HGet(HGet),
+    HMGet(HMGet),
     HSet(HSet),
     HGetAll(HGetAll),
     Echo(Echo),
@@ -58,6 +59,12 @@ pub struct Set {
 pub struct HGet {
     key: String,
     field: String,
+}
+
+#[derive(Debug)]
+pub struct HMGet {
+    key: String,
+    fields: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -101,10 +108,11 @@ impl TryFrom<RespArray> for Command {
                     b"set" => Ok(Set::try_from(v)?.into()),
                     b"hget" => Ok(HGet::try_from(v)?.into()),
                     b"hset" => Ok(HSet::try_from(v)?.into()),
+                    b"hmget" => Ok(HMGet::try_from(v)?.into()),
                     b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
                     b"echo" => Ok(Echo::try_from(v)?.into()),
                     _ => Err(CommandError::UnknownCommand(
-                        String::from_utf8_lossy(ascii_lowercase).to_string(),
+                        String::from_utf8_lossy(ascii_lowercase).into(),
                     )),
                 }
             }

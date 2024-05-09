@@ -1,5 +1,5 @@
 use super::{extract_args, validate_command, CommandExecutor, HGet, HGetAll, HMGet, HSet, RESP_OK};
-use crate::{cmd::CommandError, BulkString, RespArray, RespFrame};
+use crate::{cmd::CommandError, BulkString, RespArray, RespFrame, RespNullArray};
 
 impl CommandExecutor for HGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
@@ -45,14 +45,10 @@ impl CommandExecutor for HSet {
 
 impl CommandExecutor for HMGet {
     fn execute(self, backend: &crate::Backend) -> RespFrame {
-        let mut data = Vec::with_capacity(self.fields.len());
-        for field in &self.fields {
-            match backend.hget(&self.key, field) {
-                Some(value) => data.push(value),
-                None => data.push(RespFrame::Null(crate::RespNull)),
-            }
+        match backend.hmget(&self.key, &self.fields) {
+            Some(it) => it.into(),
+            None => RespFrame::NullArray(RespNullArray),
         }
-        RespArray::new(data).into()
     }
 }
 

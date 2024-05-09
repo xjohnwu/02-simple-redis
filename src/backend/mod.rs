@@ -1,4 +1,4 @@
-use crate::RespFrame;
+use crate::{RespArray, RespFrame};
 use dashmap::DashMap;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -61,5 +61,18 @@ impl Backend {
 
     pub fn hgetall(&self, key: &str) -> Option<DashMap<String, RespFrame>> {
         self.hmap.get(key).map(|v| v.clone())
+    }
+
+    pub fn hmget(&self, key: &str, fields: &[String]) -> Option<RespArray> {
+        self.hmap.get(key).map(|hmap| {
+            let mut data = Vec::with_capacity(fields.len());
+            for field in fields {
+                match hmap.get(field) {
+                    Some(value) => data.push(value.value().clone()),
+                    None => data.push(RespFrame::Null(crate::RespNull)),
+                }
+            }
+            RespArray::new(data)
+        })
     }
 }

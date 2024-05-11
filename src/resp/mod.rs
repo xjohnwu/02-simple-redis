@@ -19,14 +19,8 @@ const CRLF: &[u8] = b"\r\n";
 const CRLF_LEN: usize = CRLF.len();
 
 pub use self::{
-    array::{RespArray, RespNullArray},
-    bulk_string::BulkString,
-    double::ApproximateFloat,
-    frame::RespFrame,
-    map::RespMap,
-    null::RespNull,
-    set::RespSet,
-    simple_error::SimpleError,
+    array::RespArray, bulk_string::BulkString, double::ApproximateFloat, frame::RespFrame,
+    map::RespMap, null::RespNull, set::RespSet, simple_error::SimpleError,
     simple_string::SimpleString,
 };
 
@@ -113,14 +107,7 @@ fn find_crlf(buf: &[u8], nth: usize) -> Option<usize> {
     None
 }
 
-// Todo: merge to parse_length
-fn parse_isize_length(buf: &[u8], prefix: &str) -> Result<(usize, isize), RespError> {
-    let end = extract_simple_frame_data(buf, prefix)?;
-    let s = String::from_utf8_lossy(&buf[prefix.len()..end]);
-    Ok((end, s.parse()?))
-}
-
-fn parse_length(buf: &[u8], prefix: &str) -> Result<(usize, usize), RespError> {
+fn parse_length(buf: &[u8], prefix: &str) -> Result<(usize, isize), RespError> {
     let end = extract_simple_frame_data(buf, prefix)?;
     let s = String::from_utf8_lossy(&buf[prefix.len()..end]);
     Ok((end, s.parse()?))
@@ -166,11 +153,13 @@ mod tests {
     fn test_calc_array_length() -> Result<()> {
         let buf = b"*2\r\n$3\r\nset\r\n$5\r\nhello\r\n";
         let (end, len) = parse_length(buf, "*")?;
+        let len = len as usize;
         let total_len = calc_total_length(buf, end, len, "*")?;
         assert_eq!(total_len, buf.len());
 
         let buf = b"*2\r\n$3\r\nset\r\n";
         let (end, len) = parse_length(buf, "*")?;
+        let len = len as usize;
         let ret = calc_total_length(buf, end, len, "*");
         assert_eq!(ret.unwrap_err(), RespError::NotComplete);
 

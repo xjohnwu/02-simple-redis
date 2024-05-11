@@ -4,7 +4,7 @@ use bytes::{Buf, BytesMut};
 
 use crate::{RespDecode, RespEncode, RespError};
 
-use super::{parse_isize_length, CRLF_LEN};
+use super::{parse_length, CRLF_LEN};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
 pub struct BulkString(pub(crate) Vec<u8>);
@@ -27,7 +27,7 @@ impl RespEncode for BulkString {
 impl RespDecode for BulkString {
     const PREFIX: &'static str = "$";
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
-        let (end, len) = parse_isize_length(buf, Self::PREFIX)?;
+        let (end, len) = parse_length(buf, Self::PREFIX)?;
         if len < 0 {
             Ok(BulkString::null())
         } else {
@@ -45,7 +45,7 @@ impl RespDecode for BulkString {
     }
 
     fn expect_length(buf: &[u8]) -> Result<usize, RespError> {
-        let (end, len) = parse_isize_length(buf, Self::PREFIX)?;
+        let (end, len) = parse_length(buf, Self::PREFIX)?;
         if len < 0 {
             Ok(5)
         } else {

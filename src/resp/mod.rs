@@ -20,7 +20,7 @@ const CRLF_LEN: usize = CRLF.len();
 
 pub use self::{
     array::{RespArray, RespNullArray},
-    bulk_string::{BulkString, RespNullBulkString},
+    bulk_string::BulkString,
     double::ApproximateFloat,
     frame::RespFrame,
     map::RespMap,
@@ -111,6 +111,13 @@ fn find_crlf(buf: &[u8], nth: usize) -> Option<usize> {
     }
 
     None
+}
+
+// Todo: merge to parse_length
+fn parse_isize_length(buf: &[u8], prefix: &str) -> Result<(usize, isize), RespError> {
+    let end = extract_simple_frame_data(buf, prefix)?;
+    let s = String::from_utf8_lossy(&buf[prefix.len()..end]);
+    Ok((end, s.parse()?))
 }
 
 fn parse_length(buf: &[u8], prefix: &str) -> Result<(usize, usize), RespError> {

@@ -10,6 +10,7 @@ pub struct Backend(Arc<BackendInner>);
 pub struct BackendInner {
     pub(crate) map: DashMap<String, RespFrame>,
     pub(crate) hmap: DashMap<String, DashMap<String, RespFrame>>,
+    pub(crate) set: DashMap<String, DashMap<RespFrame, ()>>,
 }
 
 impl Deref for Backend {
@@ -31,6 +32,7 @@ impl Default for BackendInner {
         Self {
             map: DashMap::new(),
             hmap: DashMap::new(),
+            set: DashMap::new(),
         }
     }
 }
@@ -74,5 +76,19 @@ impl Backend {
             }
             RespArray::new(data)
         })
+    }
+
+    pub fn sadd(&self, key: String, members: Vec<RespFrame>) {
+        let hset = self.set.entry(key).or_default();
+        for member in members {
+            hset.insert(member, ());
+        }
+    }
+
+    pub fn s_is_member(&self, key: &str, member: RespFrame) -> bool {
+        match self.set.get(key) {
+            Some(hset) => hset.contains_key(&member),
+            None => false,
+        }
     }
 }

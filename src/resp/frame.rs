@@ -1,12 +1,12 @@
 use crate::{
-    BulkString, RespArray, RespDecode, RespError, RespMap, RespNull, RespNullArray,
-    RespNullBulkString, RespSet, SimpleError, SimpleString,
+    ApproximateFloat, BulkString, RespArray, RespDecode, RespError, RespMap, RespNull,
+    RespNullArray, RespNullBulkString, RespSet, SimpleError, SimpleString,
 };
 use bytes::BytesMut;
 use enum_dispatch::enum_dispatch;
 
 #[enum_dispatch(RespEncode)]
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash)]
 pub enum RespFrame {
     SimpleString(SimpleString),
     Error(SimpleError),
@@ -17,7 +17,7 @@ pub enum RespFrame {
     NullArray(RespNullArray),
     Null(RespNull),
     Boolean(bool),
-    Double(f64),
+    Double(ApproximateFloat),
     Map(RespMap),
     Set(RespSet),
 }
@@ -70,7 +70,7 @@ impl RespDecode for RespFrame {
                 Ok(frame.into())
             }
             Some(b',') => {
-                let frame = f64::decode(buf)?;
+                let frame = ApproximateFloat::decode(buf)?;
                 Ok(frame.into())
             }
             Some(b'%') => {
@@ -100,7 +100,7 @@ impl RespDecode for RespFrame {
             Some(b'+') => SimpleString::expect_length(buf),
             Some(b'-') => SimpleError::expect_length(buf),
             Some(b'#') => bool::expect_length(buf),
-            Some(b',') => f64::expect_length(buf),
+            Some(b',') => ApproximateFloat::expect_length(buf),
             Some(b'_') => RespNull::expect_length(buf),
             _ => Err(RespError::NotComplete),
         }

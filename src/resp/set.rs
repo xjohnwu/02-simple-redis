@@ -5,7 +5,7 @@ use std::ops::Deref;
 
 use super::{calc_total_length, parse_length, BUF_CAP, CRLF_LEN};
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash)]
 pub struct RespSet(pub(crate) Vec<RespFrame>);
 
 // - set: "~<number-of-elements>\r\n<element-1>...<element-n>"

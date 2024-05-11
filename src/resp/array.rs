@@ -6,10 +6,10 @@ use crate::{RespDecode, RespEncode, RespError, RespFrame};
 
 use super::{calc_total_length, extract_fixed_data, parse_length, BUF_CAP, CRLF_LEN};
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash)]
 pub struct RespArray(pub(crate) Vec<RespFrame>);
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
 pub struct RespNullArray;
 
 // - array: "*<number-of-elements>\r\n<element-1>...<element-n>"

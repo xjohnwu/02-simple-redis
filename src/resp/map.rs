@@ -8,7 +8,7 @@ use std::{
 
 use super::{calc_total_length, parse_length, BUF_CAP, CRLF_LEN};
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Hash)]
 pub struct RespMap(pub(crate) BTreeMap<String, RespFrame>);
 
 // - map: "%<number-of-entries>\r\n<key-1><value-1>...<key-n><value-n>"
@@ -83,7 +83,7 @@ impl DerefMut for RespMap {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::BulkString;
+    use crate::{ApproximateFloat, BulkString};
     use anyhow::Result;
 
     #[test]
@@ -93,7 +93,7 @@ mod tests {
             "hello".to_string(),
             BulkString::new("world".to_string()).into(),
         );
-        map.insert("foo".to_string(), (-123456.789).into());
+        map.insert("foo".to_string(), ApproximateFloat(-123456.789).into());
 
         let frame: RespFrame = map.into();
         assert_eq!(

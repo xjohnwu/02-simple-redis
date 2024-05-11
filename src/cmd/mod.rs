@@ -1,6 +1,7 @@
 mod echo;
 mod hmap;
 mod map;
+mod set;
 
 use crate::{Backend, RespArray, RespError, RespFrame, SimpleString};
 use enum_dispatch::enum_dispatch;
@@ -42,6 +43,8 @@ pub enum Command {
     HSet(HSet),
     HGetAll(HGetAll),
     Echo(Echo),
+    SAdd(SAdd),
+    SIsMember(SIsMember),
 }
 
 #[derive(Debug)]
@@ -85,6 +88,18 @@ pub struct Echo {
     message: String,
 }
 
+#[derive(Debug)]
+pub struct SAdd {
+    key: String,
+    members: Vec<RespFrame>,
+}
+
+#[derive(Debug)]
+pub struct SIsMember {
+    key: String,
+    member: RespFrame,
+}
+
 impl TryFrom<RespFrame> for Command {
     type Error = CommandError;
     fn try_from(v: RespFrame) -> Result<Self, Self::Error> {
@@ -111,6 +126,8 @@ impl TryFrom<RespArray> for Command {
                     b"hmget" => Ok(HMGet::try_from(v)?.into()),
                     b"hgetall" => Ok(HGetAll::try_from(v)?.into()),
                     b"echo" => Ok(Echo::try_from(v)?.into()),
+                    b"sadd" => Ok(SAdd::try_from(v)?.into()),
+                    b"sismember" => Ok(SIsMember::try_from(v)?.into()),
                     _ => Err(CommandError::UnknownCommand(
                         String::from_utf8_lossy(ascii_lowercase).into(),
                     )),

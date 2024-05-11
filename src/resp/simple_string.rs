@@ -6,7 +6,7 @@ use crate::{RespDecode, RespEncode, RespError};
 
 use super::{extract_simple_frame_data, CRLF_LEN};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
 pub struct SimpleString(pub(crate) String);
 
 impl SimpleString {
